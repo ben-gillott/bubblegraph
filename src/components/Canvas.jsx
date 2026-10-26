@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
@@ -6,7 +7,6 @@ import React, { useRef, useEffect, useState } from "react";
  * - circle outlines
  * - sidebar component start
  * - switch to animation based draw (dt)
- * - ball id system that can handle deletion
  * */
 
 function Canvas() {
@@ -28,7 +28,7 @@ function Canvas() {
       color: "red",
       bordercolor: "black",
       hovered: false,
-      id: balls.current.length,
+      id: uuidv4(),
     });
   };
 
