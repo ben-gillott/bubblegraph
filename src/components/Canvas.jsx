@@ -1,12 +1,14 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
+ * - ball to ball lines, instead of coord based
  * - color constants
  * - circle outlines
- * - sidebar component start
+ * - sidebar component
  * - switch to animation based draw (dt)
+ * -  - Hover animation, generation animation, line dots animation
  * */
 
 function Canvas() {
@@ -38,6 +40,9 @@ function Canvas() {
       ay,
       bx,
       by,
+      thickness: 2,
+      color: "black",
+      id: uuidv4(),
     });
   };
 
@@ -51,19 +56,21 @@ function Canvas() {
     mouseCoord.y = y;
 
     //detect ball hover
+    var closestDist = Number.MAX_SAFE_INTEGER;
+    var closestBall = null;
+
     for (const ball of balls.current) {
+      ball.hovered = false;
       const dx = x - ball.x;
       const dy = y - ball.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance <= ball.r) {
-        ball.hovered = true;
-      } else {
-        ball.hovered = false;
+      if (distance <= ball.r && distance < closestDist) {
+        closestDist = distance;
+        closestBall = ball;
       }
-
-      //TODO: Only hover closest ball
     }
+    closestBall && (closestBall.hovered = true); //If not null then set hovered.
 
     draw();
   };
@@ -92,15 +99,17 @@ function Canvas() {
 
     const w = rect.width;
     const h = rect.height;
-    // console.log("Canvas rect w,h: ", w, h);
 
+    //Calculate offset
+    // console.log("Canvas rect w,h: ", w, h);
     // const offsetX = rect.left;
     // const offsetY = rect.top;
     // console.log("Canvas offset:", offsetX, offsetY);
 
-    ctx.clearRect(0, 0, w, h); //reset canvas
+    //Reset canvas
+    ctx.clearRect(0, 0, w, h);
 
-    //Draw line if dragging
+    //Draw dragline
     if (draggingLine) {
       ctx.strokeStyle = "rgba(31, 55, 236, 0.8)";
       ctx.setLineDash([6, 6]);
@@ -112,11 +121,12 @@ function Canvas() {
       ctx.stroke(); // Render the path
     }
 
-    //Draw existing lines
-    ctx.strokeStyle = "rgba(8, 8, 16, 0.8)";
-    ctx.setLineDash([0, 0]);
-    ctx.lineWidth = 3;
+    //Draw lines
     for (const line of lines.current) {
+      ctx.strokeStyle = line.color;
+      ctx.lineWidth = line.thickness;
+      ctx.setLineDash([0, 0]);
+
       ctx.beginPath(); // Start a new path
       ctx.moveTo(line.ax, line.ay);
       ctx.lineTo(line.bx, line.by);
