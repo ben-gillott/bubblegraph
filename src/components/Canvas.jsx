@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
- * - issue, adding balls directly on top of self.
+ * - new circle sometimes put right on top
  * - display both hovered & selected somehow
  * - color constants
  * - circle outlines
@@ -36,10 +36,14 @@ function Canvas() {
       selected: false,
       id: uuidv4(),
     });
+    console.log("Added ball.\nBalls:", balls);
     return balls.current[balls.current.length - 1];
   };
 
   const addLine = (aBall, bBall) => {
+    if (lineExists(aBall, bBall)) {
+      return;
+    }
     lines.current.push({
       aBall,
       bBall,
@@ -47,6 +51,25 @@ function Canvas() {
       color: "black",
       id: uuidv4(),
     });
+    console.log("Added line. \nLines", lines);
+  };
+
+  const lineExists = (aBall, bBall) => {
+    if (aBall.id === bBall.id) {
+      console.log("Did not add line to self.");
+      return true;
+    }
+
+    for (const line of lines.current) {
+      if (
+        (line.aBall.id === aBall.id && line.bBall.id === bBall.id) ||
+        (line.bBall.id === aBall.id && line.aBall.id === bBall.id)
+      ) {
+        console.log("Did not add duplicate line.");
+        return true;
+      }
+    }
+    return false; //Line does not exist already
   };
 
   const handleMouseMove = (event) => {
@@ -98,7 +121,6 @@ function Canvas() {
         if (hoveredBall.current.id !== selectedBall.current.id) {
           //Add line between
           addLine(selectedBall.current, hoveredBall.current);
-          console.log("Added line. \nLines", lines);
         } else {
           //Clicked yourself to deselect
           console.log("Deselected.");
@@ -107,9 +129,6 @@ function Canvas() {
         //Add a ball and a line from selected to it. Deselect.
         let newBall = addBall(mouseCoord.x, mouseCoord.y);
         addLine(selectedBall.current, newBall);
-        console.log("Added ball with line.");
-        console.log("Balls:", balls);
-        console.log("Lines:", lines);
       }
       //Deselect if clicked selected, or clicked space, or clicked ball
       selectedBall.current = null;
@@ -121,7 +140,6 @@ function Canvas() {
       } else {
         //Add new ball
         addBall(mouseCoord.x, mouseCoord.y);
-        console.log("Added ball.\nBalls:", balls);
       }
     }
 
@@ -176,7 +194,7 @@ function Canvas() {
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
 
       //Highlight a ball if hovering
-      if (selectedBall.current && b.id == selectedBall.current.id) {
+      if (selectedBall.current && b.id === selectedBall.current.id) {
         ctx.fillStyle = "green";
       } else if (hoveredBall.current && b.id === hoveredBall.current.id) {
         ctx.fillStyle = "blue";
