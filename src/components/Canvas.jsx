@@ -16,9 +16,11 @@ function Canvas() {
   const wrap = useRef(null);
   const balls = useRef([]);
   const lines = useRef([]);
-  const draggingLine = useRef(false);
-  const dragSrcCoord = useRef({ x: 0, y: 0 });
+
   const mouseCoord = useRef({ x: 0, y: 0 });
+
+  const selectedBall = useRef(null);
+  const hoveredBall = useRef(null);
 
   const addBall = (x, y) => {
     balls.current.push({
@@ -30,16 +32,16 @@ function Canvas() {
       color: "red",
       bordercolor: "black",
       hovered: false,
+      selected: false,
       id: uuidv4(),
     });
+    return balls.current[balls.current.length - 1];
   };
 
-  const addLine = (ax, ay, bx, by) => {
+  const addLine = (aBall, bBall) => {
     lines.current.push({
-      ax,
-      ay,
-      bx,
-      by,
+      aBall,
+      bBall,
       thickness: 2,
       color: "black",
       id: uuidv4(),
@@ -55,7 +57,7 @@ function Canvas() {
     mouseCoord.x = x;
     mouseCoord.y = y;
 
-    //detect ball hover
+    //Detect ball hover
     var closestDist = Number.MAX_SAFE_INTEGER;
     var closestBall = null;
 
@@ -70,23 +72,57 @@ function Canvas() {
         closestBall = ball;
       }
     }
-    closestBall && (closestBall.hovered = true); //If not null then set hovered.
+    if (closestBall) {
+      closestBall.hovered = true;
+      hoveredBall.current = closestBall;
+    } else {
+      hoveredBall.current = null;
+    }
 
     draw();
   };
 
   const handleClick = (event) => {
-    // console.log(`Clicked position: (${mouseCoord.x}, ${mouseCoord.y})`);
+    //selected exists
+    //--hovered exists
+    //----not same -> add line. deselect.
+    //----is same -> deselect
+    //--hovered dne -> add ball, with line between
+    //selected dne
+    //--hovered exists -> select
+    //--hovered dne -> add new ball
 
-    addBall(mouseCoord.x, mouseCoord.y);
-    addLine(dragSrcCoord.x, dragSrcCoord.y, mouseCoord.x, mouseCoord.y);
-
-    console.log("Balls", balls);
-    console.log("Lines", lines);
-
-    dragSrcCoord.x = mouseCoord.x;
-    dragSrcCoord.y = mouseCoord.y;
-    draggingLine.current = true;
+    if (selectedBall.current) {
+      if (hoveredBall.current) {
+        if (hoveredBall.current.id !== selectedBall.current.id) {
+          //Add line between
+          addLine(selectedBall.current, hoveredBall.current);
+          console.log("Added line. \nLines", lines);
+        } else {
+          //Clicked yourself to deselect
+          console.log("Deselected.");
+        }
+      } else {
+        //Add a ball and a line from selected to it. Deselect.
+        let newBall = addBall(mouseCoord.x, mouseCoord.y);
+        addLine(selectedBall.current, newBall);
+        console.log("Added ball with line.");
+        console.log("Balls:", balls);
+        console.log("Lines:", lines);
+      }
+      //Deselect if clicked selected, or clicked space, or clicked ball
+      selectedBall.current = null;
+    } else {
+      if (hoveredBall.current) {
+        //Select hovered
+        selectedBall.current = hoveredBall.current;
+        console.log("Selected ball. ID:", selectedBall.current.id);
+      } else {
+        //Add new ball
+        addBall(mouseCoord.x, mouseCoord.y);
+        console.log("Added ball.\nBalls:", balls);
+      }
+    }
 
     draw();
   };
@@ -110,13 +146,13 @@ function Canvas() {
     ctx.clearRect(0, 0, w, h);
 
     //Draw dragline
-    if (draggingLine) {
+    if (selectedBall.current) {
       ctx.strokeStyle = "rgba(31, 55, 236, 0.8)";
       ctx.setLineDash([6, 6]);
       ctx.lineWidth = 3;
 
       ctx.beginPath(); // Start a new path
-      ctx.moveTo(dragSrcCoord.x, dragSrcCoord.y);
+      ctx.moveTo(selectedBall.current.x, selectedBall.current.y);
       ctx.lineTo(mouseCoord.x, mouseCoord.y);
       ctx.stroke(); // Render the path
     }
@@ -128,8 +164,8 @@ function Canvas() {
       ctx.setLineDash([0, 0]);
 
       ctx.beginPath(); // Start a new path
-      ctx.moveTo(line.ax, line.ay);
-      ctx.lineTo(line.bx, line.by);
+      ctx.moveTo(line.aBall.x, line.aBall.y);
+      ctx.lineTo(line.bBall.x, line.bBall.y);
       ctx.stroke(); // Render the path
     }
 
