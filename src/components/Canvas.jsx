@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
- * - ball to ball lines, instead of coord based
+ * - issue, adding balls directly on top of self.
+ * - display both hovered & selected somehow
  * - color constants
  * - circle outlines
  * - sidebar component
@@ -175,7 +176,9 @@ function Canvas() {
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
 
       //Highlight a ball if hovering
-      if (b.hovered) {
+      if (selectedBall.current && b.id == selectedBall.current.id) {
+        ctx.fillStyle = "green";
+      } else if (hoveredBall.current && b.id === hoveredBall.current.id) {
         ctx.fillStyle = "blue";
       } else {
         ctx.fillStyle = b.color;
