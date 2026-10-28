@@ -3,8 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
+ * - feedback: add click and drag to add connection
+ *    - onMouseDown+move (more than jitter limit)=drag circle. Ensure no selection.
  * - new circle sometimes put right on top
- * - display both hovered & selected somehow
+ * - display both hovered & selected at same time
  * - color constants
  * - circle outlines
  * - sidebar component
