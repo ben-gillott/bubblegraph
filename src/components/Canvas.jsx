@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
+ * - drag error: on placing linked line (and new one) sometimes problem. Only check drag on hover?
  * - error: new circle sometimes put right on top
  * - display both hovered & selected at same time
  * - color constants
