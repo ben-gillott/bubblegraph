@@ -3,9 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * TODO:
- * - feedback: add click and drag to add connection
- *    - onMouseDown+move (more than jitter limit)=drag circle. Ensure no selection.
- * - new circle sometimes put right on top
+ * - error: new circle sometimes put right on top
  * - display both hovered & selected at same time
  * - color constants
  * - circle outlines
@@ -24,6 +22,8 @@ function Canvas() {
 
   const selectedBall = useRef(null);
   const hoveredBall = useRef(null);
+  const isDragging = useRef(false);
+  const mouseDown = useRef(false);
 
   const addBall = (x, y) => {
     balls.current.push({
@@ -80,8 +80,20 @@ function Canvas() {
     const x = event.clientX - rect.left; // Adjust for canvas offset
     const y = event.clientY - rect.top; // Adjust for canvas offset
 
+    let xDelta = x - mouseCoord.x;
+    let yDelta = y - mouseCoord.y;
+
     mouseCoord.x = x;
     mouseCoord.y = y;
+
+    //Handle dragging
+    if (mouseDown.current) {
+      isDragging.current = true;
+      if (hoveredBall.current) {
+        hoveredBall.current.x += xDelta;
+        hoveredBall.current.y += yDelta;
+      }
+    }
 
     //Detect ball hover
     var closestDist = Number.MAX_SAFE_INTEGER;
@@ -108,6 +120,10 @@ function Canvas() {
     draw();
   };
 
+  const handleMouseDown = (event) => {
+    mouseDown.current = true;
+  };
+
   const handleClick = (event) => {
     //selected exists
     //--hovered exists
@@ -117,6 +133,13 @@ function Canvas() {
     //selected dne
     //--hovered exists -> select
     //--hovered dne -> add new ball
+
+    mouseDown.current = false;
+    if (isDragging.current === true) {
+      //if Dragging, dont do anything on mouse up, but end the drag
+      isDragging.current = false;
+      return null;
+    }
 
     if (selectedBall.current) {
       if (hoveredBall.current) {
@@ -229,6 +252,7 @@ function Canvas() {
         // onPointerUp={onPointerUp}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
         style={{
           display: "block",
           borderRadius: 8,
