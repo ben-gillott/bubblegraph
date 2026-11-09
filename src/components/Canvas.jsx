@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 /**
  * TODO:
  * - drag error: on placing linked line (and new one) sometimes problem. Only check drag on hover?
- * - error: new circle sometimes put right on top
+ * - error: two new cirlces on double click
  * - display both hovered & selected at same time
  * - color constants
  * - circle outlines
@@ -25,6 +25,8 @@ function Canvas() {
   const hoveredBall = useRef(null);
   const isDragging = useRef(false);
   const mouseDown = useRef(false);
+
+  const wiggleTolerance = 1;
 
   const addBall = (x, y) => {
     balls.current.push({
@@ -83,12 +85,13 @@ function Canvas() {
 
     let xDelta = x - mouseCoord.x;
     let yDelta = y - mouseCoord.y;
+    let deltaDistance = yDelta ** 2 + xDelta ** 2;
 
     mouseCoord.x = x;
     mouseCoord.y = y;
 
     //Handle dragging
-    if (mouseDown.current) {
+    if (mouseDown.current && deltaDistance > wiggleTolerance) {
       isDragging.current = true;
       if (hoveredBall.current) {
         hoveredBall.current.x += xDelta;
